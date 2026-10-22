@@ -124,6 +124,50 @@ app.get('/api/leaderboard', async (req, res) => {
     }
 });
 
+// ------------------------------------------------------------
+// API Route 5: ดึงรายการการเสนอราคาของผู้ใช้ (สำหรับหน้า bids.html)
+// ------------------------------------------------------------
+app.get('/api/bids/user/:bidderId', async (req, res) => {
+    try {
+        const bidderId = req.params.bidderId;
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request()
+            .input('bidderId', sql.Int, bidderId)
+            .query(`
+                WITH LatestUserBids AS (
+                    SELECT 
+                        b.item_id,
+                        MAX(b.bid_amount) AS my_last_bid,
+                        MAX(b.bid_time) AS my_last_bid_time
+                    FROM bids b
+                    WHERE b.bidder_id = @bidderId
+                    GROUP BY b.item_id
+                )
+                SELECT 
+                    i.item_id,
+                    i.title AS product_name,
+                    c.category_name,
+                    i.current_price,
+                    i.end_time,
+                    i.status,
+                    ub.my_last_bid,
+                    img.image_url,
+                    CASE 
+                        WHEN i.current_price = ub.my_last_bid THEN N'คุณเป็นผู้นำ'
+                        ELSE N'ถูกเสนอแซง'
+                    END AS bid_status
+                FROM LatestUserBids ub
+                INNER JOIN auction_items i ON ub.item_id = i.item_id
+                INNER JOIN item_categories c ON i.category_id = c.category_id
+                LEFT JOIN item_images img ON i.item_id = img.item_id AND img.is_primary = 1
+                ORDER BY ub.my_last_bid_time DESC
+            `);
+        res.json(result.recordset);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // เปิด Server ที่ Port 3000
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
