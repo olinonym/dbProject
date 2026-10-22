@@ -128,13 +128,11 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     // ------------------------------------------------------------
-    // 4. ดึงรายการการเสนอราคาของผู้ใช้ (รองรับทั้ง index.html และ bids.html)
+    // 4. ดึงรายการการเสนอราคาของผู้ใช้
     // ------------------------------------------------------------
     async function fetchMyBids() {
         const myBidsContainer = document.getElementById('my-bids-container');
         const elSidebarCount = document.getElementById('sidebar-bids-count');
-
-        // ถ้าไม่มีทั้งตาราง และไม่มีตัวเลข Sidebar ให้ข้าม
         if (!myBidsContainer && !elSidebarCount) return;
 
         try {
@@ -146,7 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const bids = await response.json();
 
             // ------------------------------------------------------------
-            // อัปเดตตัวเลขสรุปผลและ Sidebar (ทำงานได้ทุกหน้า)
+            // อัปเดตตัวเลขสรุปผล
             // ------------------------------------------------------------
             if (Array.isArray(bids)) {
                 const totalCount = bids.length;
@@ -159,10 +157,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 const leadingSum = leadingItems.reduce((sum, item) => sum + Number(item.my_last_bid), 0);
                 const totalSum = bids.reduce((sum, item) => sum + Number(item.my_last_bid), 0);
 
-                // 🟢 อัปเดตตัวเลขบน Sidebar ด้านซ้าย (ได้ทั้ง index.html และ bids.html)
                 if (elSidebarCount) elSidebarCount.textContent = String(totalCount).padStart(2, '0');
 
-                // อัปเดตการ์ด 4 กล่องหน้า bids.html
                 const elTotal = document.getElementById('stat-total');
                 const elLeading = document.getElementById('stat-leading');
                 const elLeadingAmount = document.getElementById('stat-leading-amount');
@@ -175,7 +171,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (elOutbid) elOutbid.textContent = String(outbidCount).padStart(2, '0');
                 if (elTotalAmount) elTotalAmount.textContent = `฿${totalSum.toLocaleString()}`;
 
-                // อัปเดต Header Badge และ Tabs
                 const elTopBadge = document.getElementById('top-badge');
                 const elTabAll = document.getElementById('tab-all');
                 const elTabLeading = document.getElementById('tab-leading');
@@ -186,7 +181,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (elTabLeading) elTabLeading.textContent = `คุณเป็นผู้นำ ${leadingCount}`;
                 if (elTabOutbid) elTabOutbid.textContent = `ถูกเสนอแซง ${outbidCount}`;
 
-                // อัปเดต Alert Banner
                 const elAlertBanner = document.getElementById('alert-banner');
                 const elAlertText = document.getElementById('alert-text');
 
@@ -203,7 +197,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             // ------------------------------------------------------------
-            // อัปเดตข้อมูลลงตาราง (ทำงานเฉพาะหน้า bids.html)
+            // อัปเดตข้อมูลลงตาราง
             // ------------------------------------------------------------
             if (myBidsContainer) {
                 if (!Array.isArray(bids) || bids.length === 0) {

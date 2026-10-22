@@ -34,7 +34,7 @@ sql.connect(dbConfig)
     .catch(err => console.error('Database Connection Failed! Bad Config: ', err));
 
 // ------------------------------------------------------------
-// API Route 1: ดึงรายการสินค้าทั้งหมด (Query ข้อ 1)
+// API Route 1: ดึงรายการสินค้าทั้งหมด
 // ------------------------------------------------------------
 app.get('/api/items', async (req, res) => {
     try {
@@ -60,7 +60,7 @@ app.get('/api/items', async (req, res) => {
 });
 
 // ------------------------------------------------------------
-// API Route 2: ปุ่มกดเคาะราคา (เรียกใช้ Stored Procedure sp_PlaceBid)
+// API Route 2: ปุ่มกดเคาะราคา
 // ------------------------------------------------------------
 app.post('/api/place-bid', async (req, res) => {
     const { item_id, bidder_id, bid_amount } = req.body;
@@ -80,7 +80,7 @@ app.post('/api/place-bid', async (req, res) => {
 });
 
 // ------------------------------------------------------------
-// API Route 3: แสดงข้อมูล Analytics สรุปผลผู้บริหาร (เรียกใช้ View vw_AuctionPerformanceMetrics)
+// API Route 3: แสดงข้อมูล Analytics สรุปผลผู้บริหาร
 // ------------------------------------------------------------
 app.get('/api/analytics', async (req, res) => {
     try {
@@ -93,7 +93,7 @@ app.get('/api/analytics', async (req, res) => {
 });
 
 // ------------------------------------------------------------
-// API Route 4: แสดง Leaderboard Top 3 คนเคาะราคาสูงสุด (Query ข้อ 9 - Window Function)
+// API Route 4: แสดง Leaderboard Top 3 คนเคาะราคาสูงสุด
 // ------------------------------------------------------------
 app.get('/api/leaderboard', async (req, res) => {
     try {
@@ -125,7 +125,7 @@ app.get('/api/leaderboard', async (req, res) => {
 });
 
 // ------------------------------------------------------------
-// API Route 5: ดึงรายการการเสนอราคาของผู้ใช้ (สำหรับหน้า bids.html)
+// API Route 5: ดึงรายการการเสนอราคาของผู้ใช้
 // ------------------------------------------------------------
 app.get('/api/bids/user/:bidderId', async (req, res) => {
     try {
