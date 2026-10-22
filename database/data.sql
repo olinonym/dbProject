@@ -1,7 +1,7 @@
 USE bidzone_db;
 GO
 
--- 1. ล้างข้อมูลเก่าและรีเซ็ต ID ตัวนับ
+-- 1. Reset
 DELETE FROM shipping_details; DBCC CHECKIDENT ('shipping_details', RESEED, 0);
 DELETE FROM payments; DBCC CHECKIDENT ('payments', RESEED, 0);
 DELETE FROM winning_bids; DBCC CHECKIDENT ('winning_bids', RESEED, 0);
