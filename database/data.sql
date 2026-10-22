@@ -14,14 +14,14 @@ DELETE FROM sellers; DBCC CHECKIDENT ('sellers', RESEED, 0);
 DELETE FROM item_categories; DBCC CHECKIDENT ('item_categories', RESEED, 0);
 GO
 
--- 2. Insert Categories (เหลือเพียง 3 หมวดหมู่ตามที่ระบุ)
+-- 2. Insert Categories
 INSERT INTO item_categories (category_name, description) VALUES
-('Automotive', 'Cars, auto parts, and accessories'),
-('Collectibles', 'Rare items, coins, and vintage goods'),
-('Electronics', 'Gadgets, smartphones, and laptops');
+(N'รถยนต์', N'ยานยนต์ รถยนต์ อะไหล่ และอุปกรณ์ตกแต่ง'),
+(N'ของสะสม', N'ของหายาก เหรียญสะสม และสินค้าวินเทจ'),
+(N'อิเล็กทรอนิกส์', N'อุปกรณ์ไอที สมาร์ทโฟน และแล็ปท็อป');
 GO
 
--- 3. Insert Sellers (20 คน)
+-- 3. Insert Sellers
 DECLARE @i INT = 1;
 WHILE @i <= 20
 BEGIN
@@ -41,7 +41,7 @@ BEGIN
 END;
 GO
 
--- 4. Insert Bidders (30 คน)
+-- 4. Insert Bidders
 DECLARE @i INT = 1;
 WHILE @i <= 30
 BEGIN
@@ -58,7 +58,7 @@ BEGIN
 END;
 GO
 
--- 5. Insert Auction Items (100 สินค้า กระจายลง 3 หมวดหมู่ ID: 1, 2, 3)
+-- 5. Insert Auction Items
 DECLARE @i INT = 1;
 WHILE @i <= 100
 BEGIN
@@ -88,7 +88,7 @@ BEGIN
 END;
 GO
 
--- 6. Insert Item Images (100 รูป)
+-- 6. Insert Item Images
 DECLARE @i INT = 1;
 WHILE @i <= 100
 BEGIN
@@ -102,7 +102,7 @@ BEGIN
 END;
 GO
 
--- 7. Insert Bids (300 Bids)
+-- 7. Insert Bids
 DECLARE @i INT = 1;
 DECLARE @target_item INT;
 DECLARE @bidder_id INT;
@@ -130,7 +130,7 @@ BEGIN
 END;
 GO
 
--- 8. Insert Watchlists (50 รายการ)
+-- 8. Insert Watchlists
 DECLARE @i INT = 1;
 WHILE @i <= 50
 BEGIN
@@ -144,7 +144,7 @@ BEGIN
 END;
 GO
 
--- 9. Insert Winning Bids (30 สินค้า)
+-- 9. Insert Winning Bids
 DECLARE @i INT = 1;
 WHILE @i <= 30
 BEGIN
@@ -162,7 +162,7 @@ BEGIN
 END;
 GO
 
--- 10. Insert Payments (30 รายการ)
+-- 10. Insert Payments
 DECLARE @i INT = 1;
 WHILE @i <= 30
 BEGIN
@@ -178,7 +178,7 @@ BEGIN
 END;
 GO
 
--- 11. Insert Shipping Details (30 รายการ)
+-- 11. Insert Shipping Details
 DECLARE @i INT = 1;
 WHILE @i <= 30
 BEGIN
