@@ -2,6 +2,7 @@ const express = require('express');
 const sql = require('mssql');
 const cors = require('cors');
 const path = require('path');
+require('dotenv').config();
 
 const app = express();
 app.use(express.json());
@@ -14,23 +15,23 @@ app.use(express.static(path.join(__dirname)));
 // การตั้งค่าเชื่อมต่อกับ SQL Server (SSMS)
 // ------------------------------------------------------------
 const dbConfig = {
-    user: 'sa',                       // ใช้ชื่อผู้ใช้ sa
-    password: '123456',           // รหัสผ่านที่ตั้งไว้ในขั้นตอนที่ 1
-    server: 'localhost\\SQLEXPRESS',  // หรือ 'LINGYUE\\SQLEXPRESS'
-    database: 'bidzone_db',
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    server: process.env.DB_SERVER,
+    database: process.env.DB_NAME,
     options: {
+        encrypt: false, // สำหรับใช้งานบน Local MS SQL Server
         trustServerCertificate: true
     }
 };
 
-// สั่งเชื่อมต่อ Database
-sql.connect(dbConfig).then(() => {
-    console.log("==========================================");
-    console.log("Connected to SQL Server (bidzone_db) Successfully!");
-    console.log("==========================================");
-}).catch(err => {
-    console.error("Database Connection Failed: ", err);
-});
+// เชื่อมต่อ SQL Server
+sql.connect(dbConfig)
+    .then(pool => {
+        if (pool.connecting) console.log('Connecting to database...');
+        if (pool.connected) console.log('Connected to SQL Server Successfully!');
+    })
+    .catch(err => console.error('Database Connection Failed! Bad Config: ', err));
 
 // ------------------------------------------------------------
 // API Route 1: ดึงรายการสินค้าทั้งหมด (Query ข้อ 1)
@@ -124,7 +125,5 @@ app.get('/api/leaderboard', async (req, res) => {
 });
 
 // เปิด Server ที่ Port 3000
-const PORT = 3000;
-app.listen(PORT, () => {
-    console.log(`Server is running at http://localhost:${PORT}`);
-});
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
