@@ -1,0 +1,130 @@
+const express = require('express');
+const sql = require('mssql');
+const cors = require('cors');
+const path = require('path');
+
+const app = express();
+app.use(express.json());
+app.use(cors());
+
+// เสิร์ฟไฟล์หน้าเว็บ static (HTML, CSS, JS)
+app.use(express.static(path.join(__dirname)));
+
+// ------------------------------------------------------------
+// การตั้งค่าเชื่อมต่อกับ SQL Server (SSMS)
+// ------------------------------------------------------------
+const dbConfig = {
+    user: 'sa',                       // ใช้ชื่อผู้ใช้ sa
+    password: '123456',           // รหัสผ่านที่ตั้งไว้ในขั้นตอนที่ 1
+    server: 'localhost\\SQLEXPRESS',  // หรือ 'LINGYUE\\SQLEXPRESS'
+    database: 'bidzone_db',
+    options: {
+        trustServerCertificate: true
+    }
+};
+
+// สั่งเชื่อมต่อ Database
+sql.connect(dbConfig).then(() => {
+    console.log("==========================================");
+    console.log("Connected to SQL Server (bidzone_db) Successfully!");
+    console.log("==========================================");
+}).catch(err => {
+    console.error("Database Connection Failed: ", err);
+});
+
+// ------------------------------------------------------------
+// API Route 1: ดึงรายการสินค้าทั้งหมด (Query ข้อ 1)
+// ------------------------------------------------------------
+app.get('/api/items', async (req, res) => {
+    try {
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request().query(`
+            SELECT 
+                i.item_id,
+                i.title AS product_name,
+                c.category_name,
+                i.starting_price,
+                i.current_price,
+                i.end_time,
+                i.status,
+                img.image_url
+            FROM auction_items i
+            INNER JOIN item_categories c ON i.category_id = c.category_id
+            LEFT JOIN item_images img ON i.item_id = img.item_id AND img.is_primary = 1
+        `);
+        res.json(result.recordset);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ------------------------------------------------------------
+// API Route 2: ปุ่มกดเคาะราคา (เรียกใช้ Stored Procedure sp_PlaceBid)
+// ------------------------------------------------------------
+app.post('/api/place-bid', async (req, res) => {
+    const { item_id, bidder_id, bid_amount } = req.body;
+    try {
+        const pool = await sql.connect(dbConfig);
+        await pool.request()
+            .input('p_item_id', sql.Int, item_id)
+            .input('p_bidder_id', sql.Int, bidder_id)
+            .input('p_bid_amount', sql.Decimal(10, 2), bid_amount)
+            .execute('sp_PlaceBid');
+
+        res.json({ success: true, message: "เคาะราคาเรียบร้อยแล้ว!" });
+    } catch (err) {
+        // หาก sp_PlaceBid ส่ง RAISERROR กลับมา จะจับได้ตรงนี้
+        res.status(400).json({ success: false, message: err.message });
+    }
+});
+
+// ------------------------------------------------------------
+// API Route 3: แสดงข้อมูล Analytics สรุปผลผู้บริหาร (เรียกใช้ View vw_AuctionPerformanceMetrics)
+// ------------------------------------------------------------
+app.get('/api/analytics', async (req, res) => {
+    try {
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request().query('SELECT * FROM vw_AuctionPerformanceMetrics');
+        res.json(result.recordset);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ------------------------------------------------------------
+// API Route 4: แสดง Leaderboard Top 3 คนเคาะราคาสูงสุด (Query ข้อ 9 - Window Function)
+// ------------------------------------------------------------
+app.get('/api/leaderboard', async (req, res) => {
+    try {
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request().query(`
+            WITH RankedBids AS (
+                SELECT 
+                    b.item_id,
+                    i.title AS item_title,
+                    CONCAT(bd.first_name, ' ', bd.last_name) AS bidder_name,
+                    b.bid_amount,
+                    b.bid_time,
+                    DENSE_RANK() OVER (
+                        PARTITION BY b.item_id 
+                        ORDER BY b.bid_amount DESC
+                    ) AS bid_rank
+                FROM bids b
+                INNER JOIN auction_items i ON b.item_id = i.item_id
+                INNER JOIN bidders bd ON b.bidder_id = bd.bidder_id
+            )
+            SELECT item_id, item_title, bidder_name, bid_amount, bid_time, bid_rank
+            FROM RankedBids
+            WHERE bid_rank <= 3
+        `);
+        res.json(result.recordset);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// เปิด Server ที่ Port 3000
+const PORT = 3000;
+app.listen(PORT, () => {
+    console.log(`Server is running at http://localhost:${PORT}`);
+});
